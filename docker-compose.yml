@@ -3,67 +3,39 @@ services:
     web:
         image: nginx:alpine
         volumes:
-            - "./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf"
-            - "./etc/ssl:/etc/ssl"
-            - "./etc/nginx/default.template.conf:/etc/nginx/conf.d/default.template"
+            - ${WORKSPACE_DIR}:/var/www/html
+            - ./etc/site:/etc/nginx/conf.d
+            - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./log/:/var/log/dnmp
         ports:
             - "80:80"
-            - "3000:443"
-        environment:
-            - QINGPAY_DOMAIN=${QINGPAY_DOMAIN}
-        command: /bin/sh -c "envsubst '$$QINGPAY_DOMAIN' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+            - "443:443"
         restart: always
-        depends_on:
-            - qingpay-web
-    qingpay-web:
-        image: nginx:alpine
-        volumes:
-            - "./etc/nginx/qingpay.conf:/etc/nginx/conf.d/default.conf"
-            - "./etc/ssl:/etc/ssl"
-            - "${QINGPAY_PROJECT}:/var/www/html"
-            - "./etc/nginx/qingpay.template.conf:/etc/nginx/conf.d/default.template"
-        environment:
-            - QINGPAY_DOMAIN=${QINGPAY_DOMAIN}
-            - QINGPAY_ROOT=${QINGPAY_ROOT}
-        command: /bin/sh -c "envsubst '$$QINGPAY_DOMAIN $$QINGPAY_ROOT' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
-        restart: always
-        depends_on:
-            - qingpay-php
-            - mysqldb
-    qingpay-php:
-        image: nanoninja/php-fpm:${PHP_VERSION}
+    php:
+        build: 
+            context: ./etc/php
+            args: 
+                PHP_VERSION: ${PHP_VERSION}
         restart: always
         volumes:
             - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
-            - "${QINGPAY_PROJECT}:/var/www/html"
-    qingpay-composer:
-        image: "composer"
-        volumes:
-            - "${QINGPAY_PROJECT}:/app"
-        command: install
+            - "${WORKSPACE_DIR}:/var/www/html"
     myadmin:
         image: phpmyadmin/phpmyadmin
-        container_name: phpmyadmin
         ports:
             - "8080:80"
         environment:
             - PMA_ARBITRARY=1
-            - PMA_HOST=${MYSQL_HOST}
         restart: always
         depends_on:
-            - mysqldb
-    mysqldb:
+            - mysql
+    mysql:
         image: mysql:${MYSQL_VERSION}
-        container_name: ${MYSQL_HOST}
         restart: always
-        env_file:
-            - ".env"
-        environment:
-            - MYSQL_DATABASE=${MYSQL_DATABASE}
-            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-            - MYSQL_USER=${MYSQL_USER}
-            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
         ports:
-            - "8989:3306"
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
         volumes:
             - "./data/db/mysql:/var/lib/mysql"
+            - ./etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
