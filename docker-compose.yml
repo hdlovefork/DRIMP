@@ -39,3 +39,12 @@ services:
         volumes:
             - "./data/db/mysql:/var/lib/mysql"
             - ./etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+    redis:
+        image: redis:${REDIS_VERSION}
+        ports:
+            - "6379:6379"
+        restart: always
+        volumes:
+            - ./etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+            - ./data/db/redis/:/data/:rw
+        command: redis-server /usr/local/etc/redis/redis.conf
