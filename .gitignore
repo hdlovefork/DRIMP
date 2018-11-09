@@ -1,7 +1,7 @@
 # Global
 .*.swp
 .DS_Store
-
+.idea
 # Application
 web/app/composer.json
 web/app/composer.lock
