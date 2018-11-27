@@ -20,8 +20,8 @@
 
 ## 准备工作
 
-1. git clone git@gitee.com:minledata/docker-nginx-php-mysql.git
-2. cd docker-nginx-php-mysql
+1. `git clone git@github.com:hdlovefork/DRIMP.git`
+2. `cd DRIMP`
 3. 修改.env文件，将WORKSPACE_DIR设置成你所有项目所在目录，比如你有个myblog的项目在`/Users/dean/Workspace/myblog`下，那么`WORKSPACE_DIR=/Users/dean/Workspace`
 4. `docker-compose up -d`安装各个服务
 
