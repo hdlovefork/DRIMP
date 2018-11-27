@@ -1,4 +1,3 @@
 *
-!qingpay.conf
-!travel.conf
-!larabbs.conf
+!default.laravel.conf
+!default.thinkphp32.conf

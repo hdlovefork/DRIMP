@@ -1,371 +1,66 @@
-# Nginx PHP MySQL [![Build Status](https://travis-ci.org/nanoninja/docker-nginx-php-mysql.svg?branch=master)](https://travis-ci.org/nanoninja/docker-nginx-php-mysql) [![GitHub version](https://badge.fury.io/gh/nanoninja%2Fdocker-nginx-php-mysql.svg)](https://badge.fury.io/gh/nanoninja%2Fdocker-nginx-php-mysql)
+[TOC]
 
-Docker running Nginx, PHP-FPM, Composer, MySQL and PHPMyAdmin.
+## 目录说明
 
-## Overview
+- data：存放redis，mysql数据
 
-1. [Install prerequisites](#install-prerequisites)
+- doc：暂无作用
 
-    Before installing project make sure the following prerequisites have been met.
+- etc：存放各个服务的配置
 
-2. [Clone the project](#clone-the-project)
+  > 其中最重要的是site目录，所有站点的nginx配置全部存放在该目录下
 
-    We’ll download the code from its repository on GitHub.
+- log：存放各个服务的日志
 
-3. [Configure Nginx With SSL Certificates](#configure-nginx-with-ssl-certificates) [`Optional`]
+## 文件说明
 
-    We'll generate and configure SSL certificate for nginx before running server.
+- .env：管理各个服务的版本和基本配置
 
-4. [Configure Xdebug](#configure-xdebug) [`Optional`]
+  > 其中有个关键配置项WORKSPACE_DIR，用于设置nginx服务器的工作目录
 
-    We'll configure Xdebug for IDE (PHPStorm or Netbeans).
+## 准备工作
 
-5. [Run the application](#run-the-application)
+1. git clone git@gitee.com:minledata/docker-nginx-php-mysql.git
+2. cd docker-nginx-php-mysql
+3. 修改.env文件，将WORKSPACE_DIR设置成你所有项目所在目录，比如你有个myblog的项目在`/Users/dean/Workspace/myblog`下，那么`WORKSPACE_DIR=/Users/dean/Workspace`
+4. `docker-compose up -d`安装各个服务
 
-    By this point we’ll have all the project pieces in place.
+## 新增网站
 
-6. [Use Makefile](#use-makefile) [`Optional`]
+​   本示例演示如何添加一个Laravel的myblog站点，域名为myblog.cn，假设myblog项目位于WORKSPACE_DIR/myblog
 
-    When developing, you can use `Makefile` for doing recurrent operations.
+1. 将`etc/site/default.laravel.conf` 复制一份另取个名称如myblog.conf
 
-7. [Use Docker Commands](#use-docker-commands)
+   `cp etc/site/default.laravel.conf etc/site/myblog.conf`
 
-    When running, you can use docker commands for doing recurrent operations.
+2. 修改myblog.conf文件
 
-___
+   - 修改第5行server_name项为你自己的域名`myblog.cn`
+   - 修改第10行root项为`/var/www/html/myblog/public`
 
-## Install prerequisites
+3. 修改/etc/hosts文件添加如下配置
 
-For now, this project has been mainly created for Unix `(Linux/MacOS)`. Perhaps it could work on Windows.
+   > 127.0.0.1 myblog.cn
 
-All requisites should be available for your distribution. The most important are :
+4. 重启nginx服务
+   `cd docker-nginx-php-mysql`
 
-* [Git](https://git-scm.com/downloads)
-* [Docker](https://docs.docker.com/engine/installation/)
-* [Docker Compose](https://docs.docker.com/compose/install/)
+   `docker-compose restart`
 
-Check if `docker-compose` is already installed by entering the following command : 
+## 导入导出数据库
 
-```sh
-which docker-compose
-```
+### 导出
 
-Check Docker Compose compatibility :
+1. 在.env文件中通过配置BACKUP_DB项来设置导出的数据库名称
+2. 执行`make mysql-dump`后备份数据库至data/db/dumps/xxx.sql
 
-* [Compose file version 3 reference](https://docs.docker.com/compose/compose-file/)
+### 导入
 
-The following is optional but makes life more enjoyable :
+1. 在.env文件中通过配置BACKUP_DB项来设置导入的数据库名称
+2. 将待导入的xxx.sql文件放在data/db/dumps目录下，执行`make mysql-restore`
 
-```sh
-which make
-```
+## 进入PHP服务执行命令
 
-On Ubuntu and Debian these are available in the meta-package build-essential. On other distributions, you may need to install the GNU C++ compiler separately.
+PHP服务中默认已经安装各种PHP扩展，Composer，Nodejs等，进入PHP服务的方法：
 
-```sh
-sudo apt install build-essential
-```
-
-### Images to use
-
-* [Nginx](https://hub.docker.com/_/nginx/)
-* [MySQL](https://hub.docker.com/_/mysql/)
-* [PHP-FPM](https://hub.docker.com/r/nanoninja/php-fpm/)
-* [Composer](https://hub.docker.com/_/composer/)
-* [PHPMyAdmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/)
-* [Generate Certificate](https://hub.docker.com/r/jacoelho/generate-certificate/)
-
-You should be careful when installing third party web servers such as MySQL or Nginx.
-
-This project use the following ports :
-
-| Server     | Port |
-|------------|------|
-| MySQL      | 8989 |
-| PHPMyAdmin | 8080 |
-| Nginx      | 8000 |
-| Nginx SSL  | 3000 |
-
-___
-
-## Clone the project
-
-To install [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git), download it and install following the instructions :
-
-```sh
-git clone https://github.com/nanoninja/docker-nginx-php-mysql.git
-```
-
-Go to the project directory :
-
-```sh
-cd docker-nginx-php-mysql
-```
-
-### Project tree
-
-```sh
-.
-├── Makefile
-├── README.md
-├── data
-│   └── db
-│       ├── dumps
-│       └── mysql
-├── doc
-├── docker-compose.yml
-├── etc
-│   ├── nginx
-│   │   ├── default.conf
-│   │   └── default.template.conf
-│   ├── php
-│   │   └── php.ini
-│   └── ssl
-└── web
-    ├── app
-    │   ├── composer.json.dist
-    │   ├── phpunit.xml.dist
-    │   ├── src
-    │   │   └── Foo.php
-    │   └── test
-    │       ├── FooTest.php
-    │       └── bootstrap.php
-    └── public
-        └── index.php
-```
-
-___
-
-## Configure Nginx With SSL Certificates
-
-You can change the host name by editing the `.env` file.
-
-If you modify the host name, do not forget to add it to the `/etc/hosts` file.
-
-1. Generate SSL certificates
-
-    ```sh
-    source .env && sudo docker run --rm -v $(pwd)/etc/ssl:/certificates -e "SERVER=$NGINX_HOST" jacoelho/generate-certificate
-    ```
-
-2. Configure Nginx
-
-    Do not modify the `etc/nginx/default.conf` file, it is overwritten by  `etc/nginx/default.template.conf`
-
-    Edit nginx file `etc/nginx/default.template.conf` and uncomment the SSL server section :
-
-    ```sh
-    # server {
-    #     server_name ${NGINX_HOST};
-    #
-    #     listen 443 ssl;
-    #     fastcgi_param HTTPS on;
-    #     ...
-    # }
-    ```
-
-___
-
-## Configure Xdebug
-
-If you use another IDE than [PHPStorm](https://www.jetbrains.com/phpstorm/) or [Netbeans](https://netbeans.org/), go to the [remote debugging](https://xdebug.org/docs/remote) section of Xdebug documentation.
-
-For a better integration of Docker to PHPStorm, use the [documentation](https://github.com/nanoninja/docker-nginx-php-mysql/blob/master/doc/phpstorm-macosx.md).
-
-1. Get your own local IP address :
-
-    ```sh
-    sudo ifconfig
-    ```
-
-2. Edit php file `etc/php/php.ini` and comment or uncomment the configuration as needed.
-
-3. Set the `remote_host` parameter with your IP :
-
-    ```sh
-    xdebug.remote_host=192.168.0.1 # your IP
-    ```
-___
-
-## Run the application
-
-1. Copying the composer configuration file : 
-
-    ```sh
-    cp web/app/composer.json.dist web/app/composer.json
-    ```
-
-2. Start the application :
-
-    ```sh
-    sudo docker-compose up -d
-    ```
-
-    **Please wait this might take a several minutes...**
-
-    ```sh
-    sudo docker-compose logs -f # Follow log output
-    ```
-
-3. Open your favorite browser :
-
-    * [http://localhost:8000](http://localhost:8000/)
-    * [https://localhost:3000](https://localhost:3000/) ([HTTPS](#configure-nginx-with-ssl-certificates) not configured by default)
-    * [http://localhost:8080](http://localhost:8080/) PHPMyAdmin (username: dev, password: dev)
-
-4. Stop and clear services
-
-    ```sh
-    sudo docker-compose down -v
-    ```
-
-___
-
-## Use Makefile
-
-When developing, you can use [Makefile](https://en.wikipedia.org/wiki/Make_(software)) for doing the following operations :
-
-| Name          | Description                                  |
-|---------------|----------------------------------------------|
-| apidoc        | Generate documentation of API                |
-| clean         | Clean directories for reset                  |
-| code-sniff    | Check the API with PHP Code Sniffer (`PSR2`) |
-| composer-up   | Update PHP dependencies with composer        |
-| docker-start  | Create and start containers                  |
-| docker-stop   | Stop and clear all services                  |
-| gen-certs     | Generate SSL certificates for `nginx`        |
-| logs          | Follow log output                            |
-| mysql-dump    | Create backup of all databases               |
-| mysql-restore | Restore backup of all databases              |
-| phpmd         | Analyse the API with PHP Mess Detector       |
-| test          | Test application with phpunit                |
-
-### Examples
-
-Start the application :
-
-```sh
-sudo make docker-start
-```
-
-Show help :
-
-```sh
-make help
-```
-
-___
-
-## Use Docker commands
-
-### Installing package with composer
-
-```sh
-sudo docker run --rm -v $(pwd)/web/app:/app composer require symfony/yaml
-```
-
-### Updating PHP dependencies with composer
-
-```sh
-sudo docker run --rm -v $(pwd)/web/app:/app composer update
-```
-
-### Generating PHP API documentation
-
-```sh
-sudo docker-compose exec -T php php -d memory_limit=256M -d xdebug.profiler_enable=0 ./app/vendor/bin/apigen generate app/src --destination ./app/doc
-```
-
-### Testing PHP application with PHPUnit
-
-```sh
-sudo docker-compose exec -T php ./app/vendor/bin/phpunit --colors=always --configuration ./app
-```
-
-### Fixing standard code with [PSR2](http://www.php-fig.org/psr/psr-2/)
-
-```sh
-sudo docker-compose exec -T php ./app/vendor/bin/phpcbf -v --standard=PSR2 ./app/src
-```
-
-### Checking the standard code with [PSR2](http://www.php-fig.org/psr/psr-2/)
-
-```sh
-sudo docker-compose exec -T php ./app/vendor/bin/phpcs -v --standard=PSR2 ./app/src
-```
-
-### Analyzing source code with [PHP Mess Detector](https://phpmd.org/)
-
-```sh
-sudo docker-compose exec -T php ./app/vendor/bin/phpmd ./app/src text cleancode,codesize,controversial,design,naming,unusedcode
-```
-
-### Checking installed PHP extensions
-
-```sh
-sudo docker-compose exec php php -m
-```
-
-### Handling database
-
-#### MySQL shell access
-
-```sh
-sudo docker exec -it mysql bash
-```
-
-and
-
-```sh
-mysql -u"$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD"
-```
-
-#### Creating a backup of all databases
-
-```sh
-mkdir -p data/db/dumps
-```
-
-```sh
-source .env && sudo docker exec $(sudo docker-compose ps -q mysqldb) mysqldump --all-databases -u"$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" > "data/db/dumps/db.sql"
-```
-
-#### Restoring a backup of all databases
-
-```sh
-source .env && sudo docker exec -i $(sudo docker-compose ps -q mysqldb) mysql -u"$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" < "data/db/dumps/db.sql"
-```
-
-#### Creating a backup of single database
-
-**`Notice:`** Replace "YOUR_DB_NAME" by your custom name.
-
-```sh
-source .env && sudo docker exec $(sudo docker-compose ps -q mysqldb) mysqldump -u"$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" --databases YOUR_DB_NAME > "data/db/dumps/YOUR_DB_NAME_dump.sql"
-```
-
-#### Restoring a backup of single database
-
-```sh
-source .env && sudo docker exec -i $(sudo docker-compose ps -q mysqldb) mysql -u"$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" < "data/db/dumps/YOUR_DB_NAME_dump.sql"
-```
-
-
-#### Connecting MySQL from [PDO](http://php.net/manual/en/book.pdo.php)
-
-```php
-<?php
-    try {
-        $dsn = 'mysql:host=mysql;dbname=test;charset=utf8;port=3306';
-        $pdo = new PDO($dsn, 'dev', 'dev');
-    } catch (PDOException $e) {
-        echo $e->getMessage();
-    }
-?>
-```
-
-___
-
-## Help us
-
-Any thought, feedback or (hopefully not!)
+`docker-compose exec php bash`执行该命令后会进入你的WORKSAPCE_DIR目录，然后`cd myblog`项目中可以执行`composer install` `npm install` `php artisan migrate`等命令
