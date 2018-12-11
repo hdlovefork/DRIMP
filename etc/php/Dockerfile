@@ -18,6 +18,7 @@ RUN mkdir -p /var/software \
     && ln -s ${PWD}/node-v10.13.0-linux-x64/bin/npmx /usr/local/bin \
     && rm -rf nodejs.tar.xz \
     && docker-php-ext-install pcntl \
+    && docker-php-ext-install bcmath \
     && apt-get update \
     && apt-get install -y \
     git
