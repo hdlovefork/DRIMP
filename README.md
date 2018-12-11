@@ -1,5 +1,12 @@
 [TOC]
 
+## 分支说明
+
+* master: 包含PHP/Nginx/MySQL/Redis
+* mailhog: 包含PHP/Nginx/MySQL/Redis/Mailhog，邮件服务器
+
+
+
 ## 目录说明
 
 - data：存放redis，mysql数据
@@ -11,6 +18,8 @@
   > 其中最重要的是site目录，所有站点的nginx配置全部存放在该目录下
 
 - log：存放各个服务的日志
+
+
 
 ## 文件说明
 
@@ -42,25 +51,31 @@
 
    > 127.0.0.1 myblog.cn
 
-4. 重启nginx服务
-   `cd docker-nginx-php-mysql`
+4. 重启服务
+   `cd DRIMP`
 
    `docker-compose restart`
 
-## 导入导出数据库
+5. 好了，现在尝试在浏览器打开[myblog.cn](http://myblog.cn)
 
-### 导出
 
-1. 在.env文件中通过配置BACKUP_DB项来设置导出的数据库名称
-2. 执行`make mysql-dump`后备份数据库至data/db/dumps/xxx.sql
-
-### 导入
-
-1. 在.env文件中通过配置BACKUP_DB项来设置导入的数据库名称
-2. 将待导入的xxx.sql文件放在data/db/dumps目录下，执行`make mysql-restore`
 
 ## 进入PHP服务执行命令
 
 PHP服务中默认已经安装各种PHP扩展，Composer，Nodejs等，进入PHP服务的方法：
 
 `docker-compose exec php bash`执行该命令后会进入你的WORKSAPCE_DIR目录，然后`cd myblog`项目中可以执行`composer install` `npm install` `php artisan migrate`等命令
+
+
+
+## 导入导出数据库
+
+### 导出
+
+1. `cd DRIMP`
+2. 这里将myblog数据库备份到`~/database/myblog.sql`位置，命令：​	`docker-compose exec mysql mysqldump -uroot -proot myblog > ~/database/myblog.sql`
+
+### 导入
+
+1. `cd DRIMP`
+2. 恢复`myblog`数据库，命令：`docker-compose exec mysql mysql -uroot -proot myblog < ~/database/myblog.sql`
