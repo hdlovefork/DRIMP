@@ -54,3 +54,14 @@ services:
             - "8025:8025"
             - "1025:1025"
         restart: always
+    es:
+        build:
+          context: ./etc/elasticsearch
+        environment:
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        restart: always
+        volumes:
+            - ./data/db/es:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+
