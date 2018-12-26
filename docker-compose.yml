@@ -17,6 +17,8 @@ services:
             args: 
                 PHP_VERSION: ${PHP_VERSION}
         restart: always
+        environment:
+            LANG: C.UTF-8
         volumes:
             - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
             - "${WORKSPACE_DIR}:/var/www/html"
