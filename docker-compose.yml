@@ -5,8 +5,8 @@ services:
         container_name: web
         volumes:
             - /www/laravel-shop:/var/www/html
-            - ./etc/site:/etc/nginx/conf.d
-            - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - /data/LaravelShop/etc/site:/etc/nginx/conf.d
+            - /data/LaravelShop/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./log/:/var/log/dnmp
         ports:
             - "80:80"
@@ -14,7 +14,7 @@ services:
         restart: always
     php:
         build: 
-            context: ./etc/php
+            context: /data/LaravelShop/etc/php
             args: 
                 PHP_VERSION: latest
         container_name: php
@@ -22,8 +22,8 @@ services:
         environment:
             LANG: C.UTF-8
         volumes:
-            - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
-            - "/www/laravel-shop:/var/www/html"
+            - /data/LaravelShop/etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+            - /www/laravel-shop:/var/www/html
     myadmin:
         image: phpmyadmin/phpmyadmin
         container_name: myadmin
@@ -47,7 +47,7 @@ services:
             MYSQL_DATABASE: laravel_shop
         volumes:
             - /data/LaravelShop/db/mysql:/var/lib/mysql
-            - ./etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+            - /data/LaravelShop/etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
     redis:
         image: redis:latest
         container_name: redis
@@ -55,7 +55,7 @@ services:
             - "6379:6379"
         restart: always
         volumes:
-            - ./etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+            - /data/LaravelShop/etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
             - /data/LaravelShop/db/redis/:/data/:rw
         command: redis-server /usr/local/etc/redis/redis.conf
     mailhog:
@@ -67,7 +67,7 @@ services:
         restart: always
     es:
         build:
-          context: ./etc/elasticsearch
+          context: /data/LaravelShop/etc/elasticsearch
         container_name: es
         environment:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
