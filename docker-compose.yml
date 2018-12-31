@@ -4,7 +4,7 @@ services:
         image: nginx:alpine
         container_name: web
         volumes:
-            - ${WORKSPACE_DIR}:/var/www/html
+            - /www/laravel-shop:/var/www/html
             - ./etc/site:/etc/nginx/conf.d
             - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./log/:/var/log/dnmp
@@ -16,14 +16,14 @@ services:
         build: 
             context: ./etc/php
             args: 
-                PHP_VERSION: ${PHP_VERSION}
+                PHP_VERSION: latest
         container_name: php
         restart: always
         environment:
             LANG: C.UTF-8
         volumes:
             - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
-            - "${WORKSPACE_DIR}:/var/www/html"
+            - "/www/laravel-shop:/var/www/html"
     myadmin:
         image: phpmyadmin/phpmyadmin
         container_name: myadmin
@@ -35,25 +35,28 @@ services:
         depends_on:
             - mysql
     mysql:
-        image: mysql:${MYSQL_VERSION}
+        image: mysql:5.7.22
         container_name: mysql
         restart: always
         ports:
             - "3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_USER: dean
+            MYSQL_USER_PASSWORD: ${MYSQL_USER_PASSWORD}
+            MYSQL_DATABASE: laravel_shop
         volumes:
-            - "./data/db/mysql:/var/lib/mysql"
+            - "mydata/db/mysql:/var/lib/mysql"
             - ./etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
     redis:
-        image: redis:${REDIS_VERSION}
+        image: redis:latest
         container_name: redis
         ports:
             - "6379:6379"
         restart: always
         volumes:
             - ./etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-            - ./data/db/redis/:/data/:rw
+            - mydata/db/redis/:/data/:rw
         command: redis-server /usr/local/etc/redis/redis.conf
     mailhog:
         image: mailhog/mailhog
@@ -70,7 +73,8 @@ services:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
         restart: always
         volumes:
-            - ./data/db/es:/usr/share/elasticsearch/data
+            - mydata/db/es:/usr/share/elasticsearch/data
         ports:
             - 9200:9200
-
+volumes:
+    mydata:
