@@ -6,7 +6,11 @@ RUN php -r "copy('https://install.phpcomposer.com/installer', 'composer-setup.ph
 	&& php composer-setup.php \
     && php -r "unlink('composer-setup.php');" \
     && mv composer.phar /bin/composer \
-    && composer config -g repo.packagist composer https://packagist.laravel-china.org
+    && composer config -g repo.packagist composer https://packagist.laravel-china.org \
+    && composer global require deployer/deployer \
+    && composer global require phpunit/phpunit
+
+ENV PATH $PATH:~/.composer/vendor/bin
 
 WORKDIR /var/software
 
@@ -21,6 +25,8 @@ RUN mkdir -p /var/software \
     && docker-php-ext-install bcmath \
     && apt-get update \
     && apt-get install -y \
-    git
+    git \
+    unzip \
+    vim
 
 WORKDIR /var/www/html
