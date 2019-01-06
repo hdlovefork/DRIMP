@@ -4,9 +4,9 @@ services:
         image: nginx:alpine
         container_name: web
         volumes:
-            - /www/laravel-shop:/var/www/html
-            - /data/LaravelShop/etc/site:/etc/nginx/conf.d
-            - /data/LaravelShop/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - /www/wwwroot/laravel-shop:/var/www/html
+            - /www/docker/etc/site:/etc/nginx/conf.d
+            - /www/docker/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./log/:/var/log/dnmp
         ports:
             - "80:80"
@@ -14,7 +14,7 @@ services:
         restart: always
     php:
         build: 
-            context: /data/LaravelShop/etc/php
+            context: /www/docker/etc/php
             args: 
                 PHP_VERSION: latest
         container_name: php
@@ -22,8 +22,8 @@ services:
         environment:
             LANG: C.UTF-8
         volumes:
-            - /data/LaravelShop/etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
-            - /www/laravel-shop:/var/www/html
+            - /www/docker/etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+            - /www/wwwroot/laravel-shop:/var/www/html
     myadmin:
         image: phpmyadmin/phpmyadmin
         container_name: myadmin
@@ -39,24 +39,24 @@ services:
         container_name: mysql
         restart: always
         ports:
-            - "3306:3306"
+            - "127.0.0.1:3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_USER: dean
             MYSQL_USER_PASSWORD: dean
             MYSQL_DATABASE: laravel_shop
         volumes:
-            - /data/LaravelShop/db/mysql:/var/lib/mysql
-            - /data/LaravelShop/etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+            - /www/docker/db/mysql:/var/lib/mysql
+            - /www/docker/etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
     redis:
         image: redis:latest
         container_name: redis
         ports:
-            - "6379:6379"
+            - "127.0.0.1:6379:6379"
         restart: always
         volumes:
-            - /data/LaravelShop/etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-            - /data/LaravelShop/db/redis/:/data/:rw
+            - /www/docker/etc/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+            - /www/docker/db/redis/:/data/:rw
         command: redis-server /usr/local/etc/redis/redis.conf
     mailhog:
         image: mailhog/mailhog
@@ -67,12 +67,12 @@ services:
         restart: always
     es:
         build:
-          context: /data/LaravelShop/etc/elasticsearch
+          context: /www/docker/etc/elasticsearch
         container_name: es
         environment:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
         restart: always
         volumes:
-            - /data/LaravelShop/db/es:/usr/share/elasticsearch/data
+            - /www/docker/db/es:/usr/share/elasticsearch/data
         ports:
-            - 9200:9200
+            - 127.0.0.1:9200:9200
