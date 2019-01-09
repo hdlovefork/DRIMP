@@ -2,6 +2,7 @@ version: '3'
 services:
     web:
         image: nginx:alpine
+        container_name: web
         volumes:
             - ${WORKSPACE_DIR}:/var/www/html
             - ./etc/site:/etc/nginx/conf.d
@@ -16,6 +17,7 @@ services:
             context: ./etc/php
             args: 
                 PHP_VERSION: ${PHP_VERSION}
+        container_name: php
         restart: always
         environment:
             LANG: C.UTF-8
@@ -24,6 +26,7 @@ services:
             - "${WORKSPACE_DIR}:/var/www/html"
     myadmin:
         image: phpmyadmin/phpmyadmin
+        container_name: myadmin
         ports:
             - "8080:80"
         environment:
@@ -33,6 +36,7 @@ services:
             - mysql
     mysql:
         image: mysql:${MYSQL_VERSION}
+        container_name: mysql
         restart: always
         ports:
             - "3306:3306"
@@ -43,6 +47,7 @@ services:
             - ./etc/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
     redis:
         image: redis:${REDIS_VERSION}
+        container_name: redis
         ports:
             - "6379:6379"
         restart: always
@@ -52,6 +57,7 @@ services:
         command: redis-server /usr/local/etc/redis/redis.conf
     mailhog:
         image: mailhog/mailhog
+        container_name: mailhog
         ports:
             - "8025:8025"
             - "1025:1025"
@@ -59,6 +65,7 @@ services:
     es:
         build:
           context: ./etc/elasticsearch
+        container_name: es
         environment:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
         restart: always
