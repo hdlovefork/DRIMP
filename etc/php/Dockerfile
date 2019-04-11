@@ -19,6 +19,9 @@ RUN php -r "copy('https://nodejs.org/dist/v10.13.0/node-v10.13.0-linux-x64.tar.x
     && cp -r node-v10.13.0-linux-x64/* . \
     && rm -rf node-v10.13.0-linux-x64 \
     && rm -rf nodejs.tar.xz \
+    && php -r "copy('https://github.com/yarnpkg/yarn/releases/download/v1.15.2/yarn-v1.15.2.tar.gz','/usr/local/yarn.tar.gz');" \
+    && tar xf yarn.tar.gz \
+    && rm -rf yarn.tar.gz \
     && docker-php-ext-install pcntl \
     && docker-php-ext-install bcmath \
     && apt-get update \
@@ -27,4 +30,5 @@ RUN php -r "copy('https://nodejs.org/dist/v10.13.0/node-v10.13.0-linux-x64.tar.x
     unzip \
     vim
 
+ENV PATH $PATH:/usr/local/yarn-v1.15.2/bin
 WORKDIR /var/www/html

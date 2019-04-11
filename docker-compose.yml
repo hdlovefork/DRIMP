@@ -18,6 +18,8 @@ services:
             args: 
                 PHP_VERSION: ${PHP_VERSION}
         container_name: php
+        ports:
+            - 2345:2345
         restart: always
         environment:
             LANG: C.UTF-8
